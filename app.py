@@ -233,12 +233,18 @@ elif menu == "📋 Clientes":
         if df_clientes.empty:
             st.info("No hay clientes en el sistema.")
         else:
+            # 🛠️ APLICAMOS AJUSTES DE VISUALIZACIÓN MEDIANTE column_config
             tabla_interactiva = st.dataframe(
                 df_clientes, 
                 use_container_width=True, 
                 selection_mode="single-row", 
                 on_select="rerun",
-                key="tabla_clientes_view"
+                key="tabla_clientes_view",
+                column_config={
+                    "observaciones": None,  # ❌ Oculta la columna por completo en la tabla
+                    "monto_mensual_fijo": "Imp. fijo",  # 🏷️ Renombra la columna de tarifa
+                    "facturacion_automatica": "FA"  # 🏷️ Renombra la columna de automatización
+                }
             )
             filas_seleccionadas = tabla_interactiva.get("selection", {}).get("rows", [])
             if filas_seleccionadas:
@@ -310,7 +316,7 @@ elif menu == "📋 Clientes":
                                 """),
                                 {
                                     "cliente": ed_nom.strip(),
-                                    "email": ed_eml.strip() if ed_eml else "",  # Guardado seguro de opcional
+                                    "email": ed_eml.strip() if ed_eml else "",
                                     "telefono": str(ed_tel).strip(),
                                     "contacto": ed_con.strip(),
                                     "fecha_inicio": ed_f_ini,
@@ -337,7 +343,7 @@ elif menu == "📋 Clientes":
                 col_n1, col_n2 = st.columns(2)
                 ruc = col_n1.text_input("Número de RUC *")
                 nom = col_n1.text_input("Razón Social / Nombre Comercial *")
-                eml = col_n2.text_input("Correo Electrónico Primario (Opcional)")  # 🛠️ Modificado a Opcional
+                eml = col_n2.text_input("Correo Electrónico Primario (Opcional)")
                 tel = col_n2.text_input("Teléfono Móvil (WhatsApp) *")
                 
                 con_n = col_n1.text_input("Persona de Contacto")
@@ -351,11 +357,9 @@ elif menu == "📋 Clientes":
                 obs_n = st.text_area("Notas Adicionales")
                 
                 if st.form_submit_button("🚀 Dar de Alta Cliente"):
-                    # 🛠️ Validación corregida: ya no exige 'eml' para proceder
                     if ruc.strip() and nom.strip() and tel.strip():
                         ruc_limpio = str(ruc).strip()
                         
-                        # Validamos directo en la nube si el RUC ya existe
                         check_ruc = conn.query("SELECT ruc FROM clientes WHERE ruc = :ruc LIMIT 1;", params={"ruc": ruc_limpio}, ttl="0")
                         
                         if not check_ruc.empty:
@@ -370,7 +374,7 @@ elif menu == "📋 Clientes":
                                     {
                                         "ruc": ruc_limpio,
                                         "cliente": nom.strip(),
-                                        "email": eml.strip() if eml else "",  # Guardado seguro si va vacío
+                                        "email": eml.strip() if eml else "",
                                         "telefono": str(tel).strip(),
                                         "contacto": con_n.strip(),
                                         "fecha_inicio": f_ini_n,
