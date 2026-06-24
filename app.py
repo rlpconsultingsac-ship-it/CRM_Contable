@@ -30,7 +30,16 @@ except Exception as e:
 # 3. AUTOMATIZACIÓN DE IGUALAS (VERSIÓN CLOUD)
 # ==========================================
 def ejecutar_automatizaciones_cloud():
-    hoy = date.today()
+    # Importamos las herramientas de zona horaria para blindar el proceso
+    from datetime import datetime, timezone, timedelta
+    import calendar
+    from sqlalchemy import text
+    import pandas as pd
+    
+    # CORRECCIÓN DE ZONA HORARIA: Forzamos la fecha real de Perú (UTC-5)
+    tz_peru = timezone(timedelta(hours=-5))
+    hoy = datetime.now(tz_peru).date()
+    
     mes_actual = hoy.strftime('%Y-%m')
     
     # Diccionario para formatear el mes en español y mayúsculas
@@ -89,7 +98,7 @@ def ejecutar_automatizaciones_cloud():
         if cambio_f:
             session.commit()
 
-# Ejecutamos la facturación recurrentemente en la nube antes de cargar las vistas
+# Ejecutamos la facturación recurrente en la nube antes de cargar las vistas
 ejecutar_automatizaciones_cloud()
 
 # ==========================================
