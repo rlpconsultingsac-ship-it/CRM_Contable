@@ -748,7 +748,7 @@ elif menu == "📊 Estados de Cuenta":
         pdf = FPDF()
         pdf.add_page()
         
-        try: pdf.image("logo.png", x=15, y=15, w=60)
+        try: pdf.image("logo.png", x=20, y=20, w=80)
         except: pass
         
         pdf.set_font("Helvetica", "B", 12)
