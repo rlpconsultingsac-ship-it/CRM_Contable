@@ -764,7 +764,7 @@ elif menu == "📊 Estados de Cuenta":
         
         pdf.set_fill_color(235, 243, 250) 
         pdf.set_font("Helvetica", "B", 10)
-        pdf.cell(0, 9, f"   DEUDA TOTAL GENERAL VENCIDA: S/. {deuda_total:,.2f}", ln=True, fill=True) 
+        pdf.cell(0, 9, f"   DEUDA TOTAL: S/ {deuda_total:,.2f}", ln=True, fill=True) 
         pdf.ln(4)
         
         pdf.set_font("Helvetica", "B", 9)
