@@ -33,13 +33,20 @@ def ejecutar_automatizaciones_cloud():
     hoy = date.today()
     mes_actual = hoy.strftime('%Y-%m')
     
+    # Diccionario para formatear el mes en español y mayúsculas
+    meses_es = {
+        1: "ENE", 2: "FEB", 3: "MAR", 4: "ABR", 5: "MAY", 6: "JUN",
+        7: "JUL", 8: "AGO", 9: "SEP", 10: "OCT", 11: "NOV", 12: "DIC"
+    }
+    periodo_str = f"{meses_es[hoy.month]}-{hoy.year}"
+    
     # 1. Traer solo los clientes que tienen facturación automática y están activos
     df_c = conn.query("SELECT ruc, cliente, fecha_inicio, monto_mensual_fijo FROM clientes WHERE facturacion_automatica = true AND estado = 'Activo';", ttl="0")
     if df_c.empty:
         return
 
     # 2. Verificar qué conceptos de este mes ya existen en la base de datos para no duplicar
-    concepto_mes = f"Servicio Contable Tributario - Periodo {mes_actual}"
+    concepto_mes = f"Servicio Contable Tributario - {periodo_str}"
     df_f_existentes = conn.query("SELECT ruc FROM facturas WHERE concepto = :concepto;", params={"concepto": concepto_mes}, ttl="0")
     rucs_ya_facturados = set(df_f_existentes["ruc"].astype(str).tolist()) if not df_f_existentes.empty else set()
     
@@ -82,7 +89,7 @@ def ejecutar_automatizaciones_cloud():
         if cambio_f:
             session.commit()
 
-# Ejecutamos la facturación recurrente en la nube antes de cargar las vistas
+# Ejecutamos la facturación recurrentemente en la nube antes de cargar las vistas
 ejecutar_automatizaciones_cloud()
 
 # ==========================================
