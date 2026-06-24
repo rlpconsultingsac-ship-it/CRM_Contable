@@ -39,7 +39,7 @@ def ejecutar_automatizaciones_cloud():
         return
 
     # 2. Verificar qué conceptos de este mes ya existen en la base de datos para no duplicar
-    concepto_mes = f"Honorarios Mensuales Contables - Periodo {mes_actual}"
+    concepto_mes = f"Servicio Contable Tributario - Periodo {mes_actual}"
     df_f_existentes = conn.query("SELECT ruc FROM facturas WHERE concepto = :concepto;", params={"concepto": concepto_mes}, ttl="0")
     rucs_ya_facturados = set(df_f_existentes["ruc"].astype(str).tolist()) if not df_f_existentes.empty else set()
     
