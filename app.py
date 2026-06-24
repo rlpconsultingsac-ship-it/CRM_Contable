@@ -714,6 +714,8 @@ elif menu == "📊 Estados de Cuenta":
     from email.mime.text import MIMEText
     from email.mime.base import MIMEBase
     from email import encoders
+    # Importamos las herramientas de zona horaria nativas
+    from datetime import datetime, timezone, timedelta
 
     # 1. Conexión y lectura de datos en tiempo real de Supabase
     conn = st.connection("postgresql", type="sql")
@@ -752,7 +754,12 @@ elif menu == "📊 Estados de Cuenta":
         pdf.set_font("Helvetica", "B", 14)
         pdf.cell(0, 10, "ESTADO DE CUENTA", ln=True, align="C")
         pdf.set_font("Helvetica", "I", 9)
-        pdf.cell(0, 5, f"Fecha de Emisión: {date.today().strftime('%d/%m/%Y')}", ln=True, align="C")
+        
+        # CORRECCIÓN DE ZONA HORARIA: Forzamos la hora de Perú (UTC-5)
+        tz_peru = timezone(timedelta(hours=-5))
+        fecha_peru_str = datetime.now(tz_peru).strftime('%d/%m/%Y')
+        
+        pdf.cell(0, 5, f"Fecha de Emisión: {fecha_peru_str}", ln=True, align="C")
         pdf.ln(8)
         
         pdf.set_font("Helvetica", "B", 10)
