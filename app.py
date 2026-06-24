@@ -255,7 +255,11 @@ elif menu == "📋 Clientes":
             with st.form("f_ed_cli_tab"):
                 col_e1, col_e2 = st.columns(2)
                 ed_nom = col_e1.text_input("Razón Social / Nombre", value=str(row_c["cliente"]))
-                ed_eml = col_e1.text_input("Correo Electrónico", value=str(row_c["email"]))
+                
+                # Tratamiento seguro por si el correo actual en la BD es NULL o vacío
+                email_actual = str(row_c["email"]).strip() if pd.notna(row_c["email"]) else ""
+                ed_eml = col_e1.text_input("Correo Electrónico (Opcional)", value=email_actual)
+                
                 tel_inicial = str(row_c["telefono"]).strip()
                 ed_tel = col_e2.text_input("Teléfono Celular (WhatsApp)", value=tel_inicial)
                 ed_con = col_e2.text_input("Persona de Contacto Interno", value=str(row_c["contacto"]))
@@ -286,41 +290,44 @@ elif menu == "📋 Clientes":
                 b_act, b_elim = st.columns([1, 1])
                 
                 if b_act.form_submit_button("💾 Guardar Cambios"):
-                    with conn.session as session:
-                        session.execute(
-                            text("""
-                            UPDATE clientes SET 
-                                cliente = :cliente,
-                                email = :email,
-                                telefono = :telefono,
-                                contacto = :contacto,
-                                fecha_inicio = :fecha_inicio,
-                                estado = :estado,
-                                monto_mensual_fijo = :monto,
-                                facturacion_automatica = :fact_auto,
-                                observaciones = :observaciones
-                            WHERE id = :id
-                            """),  # 👈 Enuelto en text()
-                            {
-                                "cliente": ed_nom,
-                                "email": ed_eml,
-                                "telefono": str(ed_tel).strip(),
-                                "contacto": ed_con,
-                                "fecha_inicio": ed_f_ini,
-                                "estado": ed_est,
-                                "monto": ed_monto,
-                                "fact_auto": ed_auto,
-                                "observaciones": ed_obs,
-                                "id": id_cliente
-                            }
-                        )
-                        session.commit()
-                    st.success("¡Datos actualizados correctamente en la nube!")
-                    st.rerun()
-                    
+                    if not ed_nom.strip():
+                        st.error("❌ La Razón Social no puede quedar vacía.")
+                    else:
+                        with conn.session as session:
+                            session.execute(
+                                text("""
+                                UPDATE clientes SET 
+                                    cliente = :cliente,
+                                    email = :email,
+                                    telefono = :telefono,
+                                    contacto = :contacto,
+                                    fecha_inicio = :fecha_inicio,
+                                    estado = :estado,
+                                    monto_mensual_fijo = :monto,
+                                    facturacion_automatica = :fact_auto,
+                                    observaciones = :observaciones
+                                WHERE id = :id
+                                """),
+                                {
+                                    "cliente": ed_nom.strip(),
+                                    "email": ed_eml.strip() if ed_eml else "",  # Guardado seguro de opcional
+                                    "telefono": str(ed_tel).strip(),
+                                    "contacto": ed_con.strip(),
+                                    "fecha_inicio": ed_f_ini,
+                                    "estado": ed_est,
+                                    "monto": ed_monto,
+                                    "fact_auto": ed_auto,
+                                    "observaciones": ed_obs.strip(),
+                                    "id": id_cliente
+                                }
+                            )
+                            session.commit()
+                        st.success("¡Datos actualizados correctamente en la nube!")
+                        st.rerun()
+                        
                 if b_elim.form_submit_button("🗑️ Dar de Baja / Eliminar Cliente"):
                     with conn.session as session:
-                        session.execute(text("DELETE FROM clientes WHERE id = :id"), {"id": id_cliente}) # 👈 Envuelto en text()
+                        session.execute(text("DELETE FROM clientes WHERE id = :id"), {"id": id_cliente})
                         session.commit()
                     st.warning("Cliente eliminado permanentemente de la base de datos.")
                     st.rerun()
@@ -330,7 +337,7 @@ elif menu == "📋 Clientes":
                 col_n1, col_n2 = st.columns(2)
                 ruc = col_n1.text_input("Número de RUC *")
                 nom = col_n1.text_input("Razón Social / Nombre Comercial *")
-                eml = col_n2.text_input("Correo Electrónico Primario *")
+                eml = col_n2.text_input("Correo Electrónico Primario (Opcional)")  # 🛠️ Modificado a Opcional
                 tel = col_n2.text_input("Teléfono Móvil (WhatsApp) *")
                 
                 con_n = col_n1.text_input("Persona de Contacto")
@@ -344,10 +351,11 @@ elif menu == "📋 Clientes":
                 obs_n = st.text_area("Notas Adicionales")
                 
                 if st.form_submit_button("🚀 Dar de Alta Cliente"):
-                    if ruc and nom and eml and tel:
+                    # 🛠️ Validación corregida: ya no exige 'eml' para proceder
+                    if ruc.strip() and nom.strip() and tel.strip():
                         ruc_limpio = str(ruc).strip()
                         
-                        # Validamos directo en la nube si el RUC ya existe (conn.query ya maneja text por dentro, no cambies este)
+                        # Validamos directo en la nube si el RUC ya existe
                         check_ruc = conn.query("SELECT ruc FROM clientes WHERE ruc = :ruc LIMIT 1;", params={"ruc": ruc_limpio}, ttl="0")
                         
                         if not check_ruc.empty:
@@ -358,16 +366,16 @@ elif menu == "📋 Clientes":
                                     text("""
                                     INSERT INTO clientes (ruc, cliente, email, telefono, contacto, fecha_inicio, estado, observaciones, monto_mensual_fijo, facturacion_automatica)
                                     VALUES (:ruc, :cliente, :email, :telefono, :contacto, :fecha_inicio, :estado, :observaciones, :monto, :fact_auto)
-                                    """),  # 👈 Envuelto en text()
+                                    """),
                                     {
                                         "ruc": ruc_limpio,
-                                        "cliente": nom,
-                                        "email": eml,
+                                        "cliente": nom.strip(),
+                                        "email": eml.strip() if eml else "",  # Guardado seguro si va vacío
                                         "telefono": str(tel).strip(),
-                                        "contacto": con_n,
+                                        "contacto": con_n.strip(),
                                         "fecha_inicio": f_ini_n,
                                         "estado": est,
-                                        "observaciones": obs_n,
+                                        "observaciones": obs_n.strip(),
                                         "monto": monto,
                                         "fact_auto": auto
                                     }
@@ -376,8 +384,8 @@ elif menu == "📋 Clientes":
                             st.success("¡Cliente registrado con éxito en Supabase!")
                             st.rerun()
                     else:
-                        st.error("Por favor completa todos los campos obligatorios (*).")
-
+                        st.error("❌ Por favor completa todos los campos obligatorios (*). RUC, Razón Social y Teléfono son indispensables.")
+                        
 # ==========================================
 # 💵 FACTURACIÓN (VERSIÓN SUPABASE)
 # ==========================================
