@@ -792,7 +792,7 @@ elif menu == "📊 Estados de Cuenta":
         
         pdf.set_fill_color(235, 243, 250) 
         pdf.set_font("Helvetica", "B", 10)
-        pdf.cell(0, 9, f"   DEUDA TOTAL: S/ {deuda_total:,.2f}", ln=True, fill=True) 
+        pdf.cell(0, 9, f"    DEUDA TOTAL: S/ {deuda_total:,.2f}", ln=True, fill=True) 
         pdf.ln(4)
         
         pdf.set_font("Helvetica", "B", 9)
@@ -809,9 +809,15 @@ elif menu == "📊 Estados de Cuenta":
             pdf.cell(35, 7, str(f["fecha_vencimiento"]), border=1, align="C")
             pdf.cell(45, 7, f"S/. {float(f['saldo_pendiente']):,.2f} ", border=1, align="R", ln=True)
             
-        pdf.ln(10)
+        # 🛠️ NUEVA NOTA ADJUNTA A LA TABLA
+        pdf.ln(2)  # Separación milimétrica justo debajo del borde inferior de la tabla
+        pdf.set_font("Helvetica", "I", 8.5)
+        pdf.cell(0, 4, "* Nota: Los importes detallados en la presente tabla no incluyen el Impuesto General a las Ventas (IGV).", ln=True)
+        
+        # Continuamos con las cuentas bancarias (bajamos un poco el espacio para que no se pegue con la nota)
+        pdf.ln(8)
         pdf.set_font("Helvetica", "B", 10)
-        pdf.cell(0, 5, "CUENTAS BANCARIAS:", ln=True)
+        pdf.cell(0, 5, "CUENTAS BANCARIAS AUTORIZADAS:", ln=True)
         pdf.set_font("Helvetica", "", 9)
         pdf.multi_cell(0, 5, emisor_bancos)
         
