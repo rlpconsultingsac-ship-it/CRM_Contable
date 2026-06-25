@@ -817,7 +817,7 @@ elif menu == "📊 Estados de Cuenta":
         # Continuamos con las cuentas bancarias (bajamos un poco el espacio para que no se pegue con la nota)
         pdf.ln(8)
         pdf.set_font("Helvetica", "B", 10)
-        pdf.cell(0, 5, "CUENTAS BANCARIAS AUTORIZADAS:", ln=True)
+        pdf.cell(0, 5, "CUENTAS BANCARIAS:", ln=True)
         pdf.set_font("Helvetica", "", 9)
         pdf.multi_cell(0, 5, emisor_bancos)
         
